@@ -7,6 +7,7 @@ license = "MIT"
 homepage = "https://github.com/duksosleepy/hypermodern-python"
 repository = "https://github.com/duksosleepy/hypermodern-python"
 keywords = ["hypermodern"]
+documentation = "https://hypermodern-python.readthedocs.io"
 
 
 [tool.poetry.dependencies]
