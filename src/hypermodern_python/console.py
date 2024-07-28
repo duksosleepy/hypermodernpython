@@ -7,7 +7,7 @@ from prettier import cprint
 from . import wikipedia
 
 
-def cmd():
+def cmd() -> None:
     from jsonargparse import CLI
 
     CLI(wikipedia.Fetcher)

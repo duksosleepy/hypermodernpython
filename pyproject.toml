@@ -4,11 +4,18 @@ version = "0.2.0"
 description = "My python modern config"
 authors = ["Duk <songkhoi123@gmail.com>"]
 license = "MIT"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Topic :: Games/Entertainment :: Fortune Cookies",
+]
 homepage = "https://github.com/duksosleepy/hypermodern-python"
 repository = "https://github.com/duksosleepy/hypermodern-python"
 keywords = ["hypermodern"]
 documentation = "https://hypermodern-python.readthedocs.io"
-
+packages = [{include = "hypermodern_python", from = "src"}]
+include = ["tests"]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -27,24 +34,34 @@ coverage = {extras = ["toml"], version = "^7.1.0"}
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 mypy = "^1.0.1"
-flake8-annotations = "^3.0.0"
-flake8-docstrings = "^1.7.0"
 xdoctest = "^1.1.1"
 sphinx = "^6.1.3"
 sphinx-autodoc-typehints = "^1.22"
 codecov = "^2.1.12"
+factory-boy = "^3.3.0"
+pytest-httpserver = "^1.0.12"
+pytest-xdist = "^3.6.1"
+ruff = "^0.5.5"
+typeguard = "^4.3.0"
 
+[tool.poetry.urls]
+Issues = "https://github.com/duksosleepy/hypermodern-python/issues"
+
+[tool.poetry.scripts]
+hypermodern-python = "hypermodern_python.console:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
 
 
 [tool.coverage.run]
+parallel = true
 branch = true
-source = ["hypermodern_python"]
+source = ["hypermodern_python", "tests"]
 
 
 [tool.coverage.report]
+show_missing = true
 fail_under = 100
 
 
@@ -54,16 +71,34 @@ target-version = ['py37', 'py38']
 include = '\.pyi?$'
 preview = true
 
+[tool.ruff]
+src = ["src"]
+preview = true
+extend-exclude = ["example.py"]
 
-[tool.pyright]
-venvPath="C:/Users/THAY PHACH/AppData/Local/pypoetry/Cache/virtualenvs"
-venv="hypermodern-python-o4Cs2Vq1-py3.11"
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "ANN",    # flake8-annotations
+    "COM812", # missing-trailing-comma
+    "CPY001", # missing-copyright-notice
+    "D",      # pydocstyle
+    "PT001",  # pytest-fixture-incorrect-parentheses-style
+    "ISC001", # single-line-implicit-string-concatenation
+]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["INP001"]  # implicit-namespace-package
+"tests/*" = ["S101"] # assert
 
-[tool.poetry.scripts]
-hypermodern-python = "hypermodern_python.console:main"
+[tool.mypy]
+strict = true
+pretty = true
 
+[tool.poetry-dynamic-versioning]
+enable = true
+substitution.folders = [{path = "src"}]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"

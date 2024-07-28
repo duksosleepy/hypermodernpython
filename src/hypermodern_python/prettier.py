@@ -4,7 +4,7 @@ import os
 os.system("")
 
 
-def cprint(fmt, fg=None, bg=None, style=None):
+def cprint(fmt: str, fg: str = None, bg: str = None, style: str = None) -> None:
     """
     Colour-printer.
         cprint( 'Hello!' )                                  # normal
@@ -53,7 +53,6 @@ def cprint(fmt, fg=None, bg=None, style=None):
         "h": 8,  # hide
         "s": 9,  # strikethrough
     }
-
     # properties
     props = []
     if isinstance(style, str):

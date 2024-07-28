@@ -1,0 +1,12 @@
+#some useful scripts
+poetry self add poetry-plugin-export
+poetry self add poetry-plugin-
+
+[
+poetry self add "poetry-dynamic-versioning[plugin]"
+git tag v1.0.0
+poetry build
+python -m hypermodern_python --version
+]
+
+poetry export --without-hashes --format=requirements.txt > requirements.txt

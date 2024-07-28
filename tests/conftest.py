@@ -1,6 +1,6 @@
 from unittest.mock import Mock
-import pytest
 
+import pytest
 from pytest_mock import MockFixture
 
 
