@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from jsonargparse import CLI
+
 from . import wikipedia
 
 
 def cmd() -> None:
-    from jsonargparse import CLI
-
     CLI(wikipedia.Fetcher)

@@ -31,7 +31,7 @@ def install_with_constraints(
     session.install("--constraint=requirements.txt", *args, **kwargs)
 
 
-def install(session: nox.Session, groups: list[str], root: bool = True):
+def install(session: nox.Session, groups: list[str], root=True):
     if root:
         groups = ["main", *groups]
     session.run_install(
@@ -185,9 +185,9 @@ def typeguard(session: nox.Session) -> None:
 def black(session: nox.Session):
     """Run black code formatter."""
     args = session.posargs or locations
-    session.install(
-        "black"
-    )  # also session.install("black==...") replace ... with version of packages you want
+    session.install("black")
+    # also session.install("black==...")
+    # replace ... with version of packages you want
     session.run("black", *args)
 
 

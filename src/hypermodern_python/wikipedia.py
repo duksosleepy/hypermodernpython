@@ -6,9 +6,11 @@ import asyncio
 import sys
 import textwrap
 import time
-from collections.abc import Awaitable
 from dataclasses import dataclass, field
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
 
 import httpx
 from cattrs.preconf.orjson import make_converter
@@ -16,23 +18,28 @@ from loguru import logger
 from prettier import cprint
 
 if sys.version_info >= (3, 8):
-    pass  # from importlib.metadata import metadata
+    from importlib.metadata import metadata
 else:
-    pass  # from importlib_metadata import metadata
+    from importlib_metadata import metadata
 
 if sys.version_info >= (3, 9):
     from collections.abc import Iterable
 else:
     from typing import Iterable
 
-API_URL: str = "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
+API_URL: str = (
+    "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
+)
 # API_URL: Final = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
-# USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
-JSON: TypeAlias = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
+USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
+JSON: TypeAlias = (
+    None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
+)
 
-# def build_user_agent() -> str:
-#     fields = metadata("hypermodern_python")
-#     return USER_AGENT.format_map(fields)
+
+def build_user_agent() -> str:
+    fields = metadata("hypermodern_python")
+    return USER_AGENT.format_map(fields)
 
 
 @dataclass
@@ -57,7 +64,9 @@ class Fetcher:
     # These two are marked 'init=False' so they do not show up in the constructor  # noqa: E501
     # logic because the user doesn't need the ability to initialize these values since  # noqa: E501
     # they a.) have defaults and b.) are internal implementation details.
-    client: httpx.AsyncClient = field(default_factory=httpx.AsyncClient, init=False)
+    client: httpx.AsyncClient = field(
+        default_factory=httpx.AsyncClient, init=False
+    )
     results: list[str] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
@@ -72,15 +81,14 @@ class Fetcher:
             self.client.headers = self.headers
         self.client.http2 = True
 
-    async def fetch(self, func: Awaitable[[httpx.AsyncClient, str, str], Page]) -> None:
+    async def fetch(
+        self, func: Awaitable[[httpx.AsyncClient, str], Page]
+    ) -> None:
         async with self.client as client:
-            tasks = []
-            for number in range(1, 10):
-                tasks.append(
-                    asyncio.ensure_future(
-                        func(client, self.url, language=self.language)
-                    )
-                )
+            tasks = [
+                asyncio.ensure_future(func(client, self.url))
+                for _ in range(1, 10)
+            ]
             start_time = time.perf_counter()
             self.results: Iterable[JSON] = await asyncio.gather(*tasks)
             end_time = time.perf_counter()
@@ -99,9 +107,7 @@ class Fetcher:
 converter = make_converter()
 
 
-async def random_page(
-    client: httpx.AsyncClient, url: str, language: str = "en"
-) -> Page:
+async def random_page(client: httpx.AsyncClient, url: str) -> Page:
     """Return a random page.
 
     Performs a GET request to the /page/random/summary endpoint.
@@ -127,11 +133,10 @@ async def random_page(
         data: JSON = response.json()
         return converter.structure(data, Page)
     except httpx.HTTPStatusError as error:
-        message = str(error)
-        raise message
+        raise str(error) from error
 
 
-# headers = {"User-Agent": build_user_agent()}
+headers = {"User-Agent": build_user_agent()}
 
-fetch_wikipedia = Fetcher(timeout=100)
+fetch_wikipedia = Fetcher(timeout=100, headers=headers)
 asyncio.run(fetch_wikipedia.fetch(random_page))

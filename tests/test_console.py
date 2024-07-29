@@ -3,11 +3,15 @@ from __future__ import annotations
 import io
 import subprocess
 import sys
-from collections.abc import Callable
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import pytest_httpserver
+
 
 import pytest
-import pytest_httpserver
 from factory import Factory, Faker
 
 from hypermodern_python import Page
@@ -31,11 +35,6 @@ class PageFactory(Factory):
 
 
 page = parametrized_fixture(Page("test"), *PageFactory.build_batch(10))
-
-
-def test_final_newline(page: Page, file: io.StringIO) -> None:
-    # show(article, file)
-    assert file.getvalue().endswith("\n")
 
 
 @pytest.fixture

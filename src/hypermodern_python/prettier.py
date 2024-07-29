@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import os
+from typing import Final
 
 # System call
 os.system("")
 
 
-def cprint(fmt: str, fg: str = None, bg: str = None, style: str = None) -> None:
+def cprint(
+    fmt: str,
+    fg: str | None = None,
+    bg: str | None = None,
+    style: str | None = None,
+) -> None:
     """
     Colour-printer.
         cprint( 'Hello!' )                                  # normal
@@ -33,7 +39,7 @@ def cprint(fmt: str, fg: str = None, bg: str = None, style: str = None) -> None:
         h   hide
     """
 
-    COLCODE = {
+    COLCODE: Final = {
         "k": 0,  # black
         "r": 1,  # red
         "g": 2,  # green
@@ -44,7 +50,7 @@ def cprint(fmt: str, fg: str = None, bg: str = None, style: str = None) -> None:
         "w": 7,  # white
     }
 
-    FMTCODE = {
+    FMTCODE: Final = {
         "b": 1,  # bold
         "f": 2,  # faint
         "i": 3,  # italic
