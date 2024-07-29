@@ -15,7 +15,7 @@ nox.options.sessions = "lint", "mypy", "safety", "tests"
 
 
 def install_with_constraints(
-    session: nox.sessions.Session, *args: str, **kwargs: Any
+    session: nox.Session, *args: str, **kwargs: Any
 ) -> None:
     """Install packages constrained by Poetry's lock file."""
     session.run(
@@ -29,7 +29,7 @@ def install_with_constraints(
     session.install("--constraint=requirements.txt", *args, **kwargs)
 
 
-def install(session, groups, root=True):
+def install(session: nox.Session, groups: list[str], root: bool = True):
     if root:
         groups = ["main", *groups]
     session.run_install(
@@ -87,7 +87,7 @@ def safety(session):
 """
 
 
-def constraints(session):
+def constraints(session: nox.Session):
     filename = f"python{session.python}-{sys.platform}-{platform.machine()}.txt"
     return Path("constraints") / filename
 
@@ -95,7 +95,7 @@ def constraints(session):
 @nox.session(
     python=["3.12", "3.11", "3.10", "3.9", "3.8", "3.7"], venv_backend="uv"
 )
-def lock(session):
+def lock(session: nox.Session):
     """Lock the dependencies."""
     filename = constraints(session)
     filename.parent.mkdir(exist_ok=True)
@@ -112,7 +112,7 @@ def lock(session):
 
 
 @nox.session
-def build(session):
+def build(session: nox.Session):
     """Build the package."""
     session.install("build", "twine")
 
@@ -125,7 +125,7 @@ def build(session):
 
 
 @nox.session(python=["3.11"])
-def safety(session):
+def safety(session: nox.Session):
     """Scan dependencies for insecure packages."""
     session.run(
         "poetry",
@@ -139,7 +139,7 @@ def safety(session):
     session.run("safety", "check", "--file=requirements.txt", "--full-report")
 
 
-def install_coverage_pth(session):
+def install_coverage_pth(session: nox.Session):
     output = session.run(
         "python",
         "-c",
@@ -153,7 +153,7 @@ def install_coverage_pth(session):
 
 
 @nox.session(python=["3.11"])
-def tests(session):
+def tests(session: nox.Session):
     """Run the test suite."""
     args = session.posargs or ["--cov"]
     session.run("poetry", "install", external=True)
@@ -161,7 +161,7 @@ def tests(session):
 
 
 @nox.session(python=["3.12", "3.11", "3.10", "3.9", "3.8", "3.7"])
-def tests_2(session):
+def tests_2(session: nox.Session):
     """Run the test suite."""
     session.install("-c", constraints(session), ".[tests]")
     install_coverage_pth(session)
@@ -174,7 +174,7 @@ def tests_2(session):
 
 
 @nox.session(python="3.12")
-def lint(session):
+def lint(session: nox.Session):
     """Lint using pre-commit."""
     options = ["--all-files", "--show-diff-on-fail"]
     session.install(f"--constraint={constraints(session)}", "pre-commit")
@@ -199,7 +199,7 @@ def typeguard(session: nox.Session) -> None:
 
 
 @nox.session(python=["3.11"])
-def black(session):
+def black(session: nox.Session):
     """Run black code formatter."""
     args = session.posargs or locations
     session.install(
@@ -209,7 +209,7 @@ def black(session):
 
 
 @nox.session(python=["3.11"])
-def pytype(session):
+def pytype(session: nox.Session):
     """Type-check using pytype."""
     args = session.posargs or ["--disable=import-error", *locations]
     session.install("pytype")
@@ -217,7 +217,7 @@ def pytype(session):
 
 
 @nox.session(python=["3.11"])
-def xdoctest(session: nox.sessions.Session) -> None:
+def xdoctest(session: nox.Session) -> None:
     """Run examples with xdoctest."""
     args = session.posargs or ["all"]
     session.run("poetry", "install", "--no-dev", external=True)
@@ -226,7 +226,7 @@ def xdoctest(session: nox.sessions.Session) -> None:
 
 
 @nox.session(python=["3.11"])
-def docs(session: nox.sessions.Session) -> None:
+def docs(session: nox.Session) -> None:
     """Build the documentation."""
     session.run("poetry", "install", "--no-dev", external=True)
     session.install("sphinx", "sphinx-autodoc-typehints")
@@ -234,7 +234,7 @@ def docs(session: nox.sessions.Session) -> None:
 
 
 @nox.session(python=["3.11"])
-def coverage(session: nox.sessions.Session) -> None:
+def coverage(session: nox.Session) -> None:
     """Generate the coverage report."""
     session.install("-c", constraints(session), "coverage[toml]")
     if any(Path().glob(".coverage.*")):

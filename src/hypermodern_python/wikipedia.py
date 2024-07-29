@@ -1,30 +1,42 @@
 """Client for the Wikipedia REST API, version 1."""
 
-import sys
-
-if sys.version_info >= (3, 8):
-    from importlib.metadata import metadata
-else:
-    from importlib_metadata import metadata
+from __future__ import annotations
 
 import asyncio
+import sys
+import textwrap
+import time
+from collections.abc import Awaitable
 from dataclasses import dataclass, field
-from typing import Awaitable
+from typing import TypeAlias
 
-import desert
+import cattrs.gen
 import httpx
-import marshmallow
 from loguru import logger
+from prettier import cprint
+
+if sys.version_info >= (3, 8):
+    pass  # from importlib.metadata import metadata
+else:
+    pass  # from importlib_metadata import metadata
+
+if sys.version_info >= (3, 9):
+    from collections.abc import Iterable
+else:
+    from typing import Iterable
 
 API_URL: str = (
     "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
 )
-USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
+# API_URL: Final = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
+# USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
+JSON: TypeAlias = (
+    None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
+)
 
-
-def build_user_agent() -> str:
-    fields = metadata("hypermodern_python")
-    return USER_AGENT.format_map(fields)
+# def build_user_agent() -> str:
+#     fields = metadata("hypermodern_python")
+#     return USER_AGENT.format_map(fields)
 
 
 @dataclass
@@ -40,20 +52,17 @@ class Page:
     extract: str
 
 
-schema = desert.schema(Page, meta={"unknown": marshmallow.EXCLUDE})
-
-
 @dataclass(slots=True)
 class Fetcher:
     language: str = "en"
     url: str | None = None
     timeout: float | None = None
-    headers: dict | None
+    headers: dict | None = None
     # These two are marked 'init=False' so they do not show up in the constructor  # noqa: E501
     # logic because the user doesn't need the ability to initialize these values since  # noqa: E501
     # they a.) have defaults and b.) are internal implementation details.
-    client: httpx.Client = field(
-        default_factory=httpx.AsyncClient(), init=False
+    client: httpx.AsyncClient = field(
+        default_factory=httpx.AsyncClient, init=False
     )
     results: list[str] = field(default_factory=list, init=False)
 
@@ -65,12 +74,12 @@ class Fetcher:
         self.client.timeout = self.timeout
         if not self.url:
             self.url = API_URL.format(language=self.language)
-        if not self.client.headers and not self.headers:
-            self.client.headers = {"User-Agent": build_user_agent()}
+        if not self.client.headers and self.headers:
+            self.client.headers = self.headers
         self.client.http2 = True
 
     async def fetch(
-        self, func: Awaitable[httpx.AsyncClient(), str, str]
+        self, func: Awaitable[[httpx.AsyncClient, str, str], Page]
     ) -> None:
         async with self.client as client:
             tasks = []
@@ -80,19 +89,33 @@ class Fetcher:
                         func(client, self.url, language=self.language)
                     )
                 )
-
-            self.results = await asyncio.gather(*tasks)
+            start_time = time.perf_counter()
+            self.results: Iterable[JSON] = await asyncio.gather(*tasks)
+            end_time = time.perf_counter()
             for page in self.results:
-                print(page)
+                cprint(page.title, fg="g")
+                cprint(textwrap.fill(page.extract), fg="r")
+                cprint("\n\n")
             logger.info(
-                "[{} :: {}] Mission complete",
+                "[{} :: {}] Mission complete in {} seconds",
                 self.url,
                 len(self.results),
+                end_time - start_time,
             )
 
 
+converter = cattrs.Converter()
+converter.register_structure_hook(
+    Page,
+    cattrs.gen.make_dict_structure_fn(
+        Page,
+        converter,
+    ),
+)
+
+
 async def random_page(
-    client: httpx.AsyncClient(), url: str, language: str = "en"
+    client: httpx.AsyncClient, url: str, language: str = "en"
 ) -> Page:
     """Return a random page.
 
@@ -114,14 +137,16 @@ async def random_page(
         True
     """
     try:
-        response = await client.get(url)
+        response = await client.get(url, follow_redirects=True)
         response.raise_for_status()
-        data = response.json()
-        return schema.load(data)
-    except marshmallow.ValidationError as error:
+        data: JSON = response.json()
+        return converter.structure(data, Page)
+    except httpx.HTTPStatusError as error:
         message = str(error)
         raise message
 
+
+# headers = {"User-Agent": build_user_agent()}
 
 fetch_wikipedia = Fetcher(timeout=100)
 asyncio.run(fetch_wikipedia.fetch(random_page))

@@ -20,12 +20,11 @@ include = ["tests"]
 [tool.poetry.dependencies]
 python = "^3.12"
 safety-db = "^2021.7.17"
-desert = "^2022.9.22"
-marshmallow = "^3.19.0"
 codecov = "^2.1.13"
 httpx = "^0.27.0"
 jsonargparse = {extras = ["all"], version = "^4.32.0"}
 loguru = "^0.7.2"
+cattrs = {extras = ["orjson"], version = "^23.2.3"}
 
 
 [tool.poetry.group.dev.dependencies]
