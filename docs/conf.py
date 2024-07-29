@@ -1,4 +1,5 @@
 """Sphinx configuration."""
+
 project = "hypermodern-python"
 author = "Khoi Nguyen Tinh Song"
 copyright = f"2023, {author}"

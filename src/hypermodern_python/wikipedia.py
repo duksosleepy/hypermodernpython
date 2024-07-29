@@ -10,8 +10,8 @@ from collections.abc import Awaitable
 from dataclasses import dataclass, field
 from typing import TypeAlias
 
-import cattrs.gen
 import httpx
+from cattrs.preconf.orjson import make_converter
 from loguru import logger
 from prettier import cprint
 
@@ -25,14 +25,10 @@ if sys.version_info >= (3, 9):
 else:
     from typing import Iterable
 
-API_URL: str = (
-    "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
-)
+API_URL: str = "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
 # API_URL: Final = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
 # USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
-JSON: TypeAlias = (
-    None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
-)
+JSON: TypeAlias = None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
 
 # def build_user_agent() -> str:
 #     fields = metadata("hypermodern_python")
@@ -61,9 +57,7 @@ class Fetcher:
     # These two are marked 'init=False' so they do not show up in the constructor  # noqa: E501
     # logic because the user doesn't need the ability to initialize these values since  # noqa: E501
     # they a.) have defaults and b.) are internal implementation details.
-    client: httpx.AsyncClient = field(
-        default_factory=httpx.AsyncClient, init=False
-    )
+    client: httpx.AsyncClient = field(default_factory=httpx.AsyncClient, init=False)
     results: list[str] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
@@ -78,9 +72,7 @@ class Fetcher:
             self.client.headers = self.headers
         self.client.http2 = True
 
-    async def fetch(
-        self, func: Awaitable[[httpx.AsyncClient, str, str], Page]
-    ) -> None:
+    async def fetch(self, func: Awaitable[[httpx.AsyncClient, str, str], Page]) -> None:
         async with self.client as client:
             tasks = []
             for number in range(1, 10):
@@ -104,14 +96,7 @@ class Fetcher:
             )
 
 
-converter = cattrs.Converter()
-converter.register_structure_hook(
-    Page,
-    cattrs.gen.make_dict_structure_fn(
-        Page,
-        converter,
-    ),
-)
+converter = make_converter()
 
 
 async def random_page(

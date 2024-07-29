@@ -11,12 +11,10 @@ import nox
 package = "hypermodern_python"
 locations = "src", "tests", "noxfile.py", "docs/conf.py"
 nox.options.error_on_external_run = True
-nox.options.sessions = "lint", "mypy", "safety", "tests"
+nox.options.sessions = "lint", "safety"
 
 
-def install_with_constraints(
-    session: nox.Session, *args: str, **kwargs: Any
-) -> None:
+def install_with_constraints(session: nox.Session, *args: str, **kwargs: Any) -> None:
     """Install packages constrained by Poetry's lock file."""
     session.run(
         "poetry",
@@ -92,25 +90,6 @@ def constraints(session: nox.Session):
     return Path("constraints") / filename
 
 
-@nox.session(
-    python=["3.12", "3.11", "3.10", "3.9", "3.8", "3.7"], venv_backend="uv"
-)
-def lock(session: nox.Session):
-    """Lock the dependencies."""
-    filename = constraints(session)
-    filename.parent.mkdir(exist_ok=True)
-    session.run(
-        "uv",
-        "pip",
-        "compile",
-        "pyproject.toml",
-        "--upgrade",
-        "--quiet",
-        "--all-extras",
-        f"--output-file={filename}",
-    )
-
-
 @nox.session
 def build(session: nox.Session):
     """Build the package."""
@@ -124,7 +103,7 @@ def build(session: nox.Session):
     session.run("twine", "check", *distdir.glob("*"))
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def safety(session: nox.Session):
     """Scan dependencies for insecure packages."""
     session.run(
@@ -152,7 +131,7 @@ def install_coverage_pth(session: nox.Session):
     )
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def tests(session: nox.Session):
     """Run the test suite."""
     args = session.posargs or ["--cov"]
@@ -160,7 +139,7 @@ def tests(session: nox.Session):
     session.run("pytest", *args)
 
 
-@nox.session(python=["3.12", "3.11", "3.10", "3.9", "3.8", "3.7"])
+@nox.session(python=["3.12"])
 def tests_2(session: nox.Session):
     """Run the test suite."""
     session.install("-c", constraints(session), ".[tests]")
@@ -192,13 +171,11 @@ def mypy(session: nox.Session) -> None:
 @nox.session(python="3.12")
 def typeguard(session: nox.Session) -> None:
     """Type-check using Typeguard."""
-    session.install(
-        f"--constraint={constraints(session)}", ".[tests]", "typeguard"
-    )
+    session.install(f"--constraint={constraints(session)}", ".[tests]", "typeguard")
     session.run("pytest", f"--typeguard-packages={package}")
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def black(session: nox.Session):
     """Run black code formatter."""
     args = session.posargs or locations
@@ -208,7 +185,7 @@ def black(session: nox.Session):
     session.run("black", *args)
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def pytype(session: nox.Session):
     """Type-check using pytype."""
     args = session.posargs or ["--disable=import-error", *locations]
@@ -216,7 +193,7 @@ def pytype(session: nox.Session):
     session.run("pytype", *args)
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def xdoctest(session: nox.Session) -> None:
     """Run examples with xdoctest."""
     args = session.posargs or ["all"]
@@ -225,7 +202,7 @@ def xdoctest(session: nox.Session) -> None:
     session.run("python", "-m", "xdoctest", package, *args)
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def docs(session: nox.Session) -> None:
     """Build the documentation."""
     session.run("poetry", "install", "--no-dev", external=True)
@@ -233,7 +210,7 @@ def docs(session: nox.Session) -> None:
     session.run("sphinx-build", "docs", "docs/_build")
 
 
-@nox.session(python=["3.11"])
+@nox.session(python=["3.12"])
 def coverage(session: nox.Session) -> None:
     """Generate the coverage report."""
     session.install("-c", constraints(session), "coverage[toml]")

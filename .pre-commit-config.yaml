@@ -7,24 +7,24 @@ repos:
     -   id: end-of-file-fixer
     -   id: trailing-whitespace
 - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.5
-    hooks:
-      - id: ruff
-        args:
-          - "--fix"
-          - "--show-fixes"
-          - "--exit-non-zero-on-fix"
+  rev: v0.5.5
+  hooks:
+    - id: ruff
+      args:
+        - "--fix"
+        - "--show-fixes"
+        - "--exit-non-zero-on-fix"
 
           # This is a workaround specific to this repository. The pyproject.toml
           # file lives in a subdirectory of the repository, while git runs
           # pre-commit from the repository root. As a result, Ruff won't find
           # the pyproject.toml for the project unless we point it to the file
           # using the --config option.
-          - "--config=pyproject.toml"
+        - "--config=pyproject.toml"
 
         # This is a workaround specific to this repository. Only run the hook on
         # files in the current project.
-      - id: ruff-format
+    - id: ruff-format
 
         # See above.
-        args: ["--config=pyproject.toml"]
+      args: ["--config=pyproject.toml"]
