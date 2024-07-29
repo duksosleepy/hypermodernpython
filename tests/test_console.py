@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import subprocess
 import sys
@@ -57,7 +59,9 @@ def test_output() -> None:
     assert process.stdout
 
 
-def test_fetch_validates(page: Page, httpserver: pytest_httpserver.HTTPServer) -> None:
+def test_fetch_validates(
+    page: Page, httpserver: pytest_httpserver.HTTPServer
+) -> None:
     httpserver.expect_request("/").respond_with_json(None)
     with pytest.raises(TypeError):
         # fetch(httpserver.url_for("/"))

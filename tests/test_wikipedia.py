@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -17,6 +19,8 @@ def test_random_page_returns_page(mock_requests_get: Mock) -> None:
 
 
 def test_random_page_handles_validation_errors(mock_requests_get: Mock) -> None:
-    mock_requests_get.return_value.__enter__.return_value.json.return_value = None
+    mock_requests_get.return_value.__enter__.return_value.json.return_value = (
+        None
+    )
     with pytest.raises():
         wikipedia.random_page()

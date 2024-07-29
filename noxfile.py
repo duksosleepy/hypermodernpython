@@ -1,5 +1,7 @@
 """Nox sessions."""
 
+from __future__ import annotations
+
 import platform
 import shutil
 import sys
@@ -14,7 +16,9 @@ nox.options.error_on_external_run = True
 nox.options.sessions = "lint", "safety"
 
 
-def install_with_constraints(session: nox.Session, *args: str, **kwargs: Any) -> None:
+def install_with_constraints(
+    session: nox.Session, *args: str, **kwargs: Any
+) -> None:
     """Install packages constrained by Poetry's lock file."""
     session.run(
         "poetry",
@@ -171,7 +175,9 @@ def mypy(session: nox.Session) -> None:
 @nox.session(python="3.12")
 def typeguard(session: nox.Session) -> None:
     """Type-check using Typeguard."""
-    session.install(f"--constraint={constraints(session)}", ".[tests]", "typeguard")
+    session.install(
+        f"--constraint={constraints(session)}", ".[tests]", "typeguard"
+    )
     session.run("pytest", f"--typeguard-packages={package}")
 
 
