@@ -30,7 +30,6 @@ else:
 API_URL: str = (
     "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
 )
-# API_URL: Final = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
 USER_AGENT: str = "{Name}/{Version} (Contact: {Author-email})"
 JSON: TypeAlias = (
     None | bool | int | float | str | list["JSON"] | dict[str, "JSON"]
@@ -113,8 +112,8 @@ async def random_page(client: httpx.AsyncClient, url: str) -> Page:
     Performs a GET request to the /page/random/summary endpoint.
 
     Args:
-        language: The Wikipedia language edition. By default, the English
-            Wikipedia is used ("en").
+        client: httpx.AsyncClient
+        url: str
 
     Returns:
         A page resource.
@@ -133,7 +132,7 @@ async def random_page(client: httpx.AsyncClient, url: str) -> Page:
         data: JSON = response.json()
         return converter.structure(data, Page)
     except httpx.HTTPStatusError as error:
-        raise str(error) from error
+        raise error
 
 
 headers = {"User-Agent": build_user_agent()}

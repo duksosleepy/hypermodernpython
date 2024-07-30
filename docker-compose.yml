@@ -1,0 +1,41 @@
+---
+name: docker-poetry-project
+
+version: "3.7"
+services:
+  builder:
+    image: "myproject-builder:latest"
+    deploy:
+      replicas: 0 # never start service, since it is only for build purposes
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      cache_from:
+        - "myproject-builder:latest"
+  app:
+    image: "myproject-app:latest"
+    deploy:
+      replicas: 0 # never start service, since it is only for build purposes
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      cache_from:
+        - "myproject-builder:latest"
+        - "myproject-app:latest"
+  app-dev:
+    image: "myproject-app-dev:latest"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      cache_from:
+        - "myproject-builder:latest"
+        - "myproject-app-dev:latest"
+    volumes:
+      - python_venv_app_dev:/app/.venv # mount virtualenv at /venv. See https://stackoverflow.com/a/74015989/5819113
+    command: /bin/sh -c "sleep infinity" # keep container running
+
+volumes:
+  python_venv_app_dev:
