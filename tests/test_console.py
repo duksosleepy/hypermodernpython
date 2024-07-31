@@ -54,7 +54,7 @@ def test_fetch(page: Page, serve: Callable[[Page], str]) -> None:
 
 def test_output() -> None:
     args = [sys.executable, "-m", "hypermodern_python"]
-    process = subprocess.run(args, capture_output=True, check=True)
+    process = subprocess.run(*args, capture_output=True, check=True)
     assert process.stdout
 
 
