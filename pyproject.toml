@@ -47,7 +47,7 @@ typeguard = "^4.3.0"
 Issues = "https://github.com/duksosleepy/hypermodern-python/issues"
 
 [tool.poetry.scripts]
-hypermodern-python = "hypermodern_python.console:main"
+hypermodern-python = "hypermodern_python.console:cmd"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
