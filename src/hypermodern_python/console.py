@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from jsonargparse import CLI
 
-from . import wikipedia
+from .wikipedia import Fetcher, cli, random_page
 
 
 def cmd() -> None:
-    CLI(wikipedia.Fetcher)
+    try:
+        CLI(cli(Fetcher, random_page))
+    except ValueError:
+        pass

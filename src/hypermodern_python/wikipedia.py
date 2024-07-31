@@ -7,7 +7,7 @@ import sys
 import textwrap
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
@@ -15,7 +15,8 @@ if TYPE_CHECKING:
 import httpx
 from cattrs.preconf.orjson import make_converter
 from loguru import logger
-from prettier import cprint
+
+from .prettier import cprint
 
 if sys.version_info >= (3, 8):
     from importlib.metadata import metadata
@@ -26,6 +27,7 @@ if sys.version_info >= (3, 9):
     from collections.abc import Iterable
 else:
     from typing import Iterable
+
 
 API_URL: str = (
     "https://{language}.wikipedia.org/api/rest_v1/page/random/summary"
@@ -58,7 +60,7 @@ class Page:
 class Fetcher:
     language: str = "en"
     url: str | None = None
-    timeout: float | None = None
+    timeout: float | None = 100
     headers: dict | None = None
     # These two are marked 'init=False' so they do not show up in the constructor  # noqa: E501
     # logic because the user doesn't need the ability to initialize these values since  # noqa: E501
@@ -80,9 +82,7 @@ class Fetcher:
             self.client.headers = self.headers
         self.client.http2 = True
 
-    async def fetch(
-        self, func: Awaitable[[httpx.AsyncClient, str], Page]
-    ) -> None:
+    async def fetch(self, func: Awaitable[[Any, Any], Page]) -> None:
         async with self.client as client:
             tasks = [
                 asyncio.ensure_future(func(client, self.url))
@@ -135,7 +135,11 @@ async def random_page(client: httpx.AsyncClient, url: str) -> Page:
         raise error
 
 
-headers = {"User-Agent": build_user_agent()}
-
-fetch_wikipedia = Fetcher(timeout=100, headers=headers)
-asyncio.run(fetch_wikipedia.fetch(random_page))
+def cli(
+    fetch_service: Fetcher,
+    func: Awaitable[[httpx.AsyncClient, str], Page],
+    timeout: int = 100,
+    headers: dict = {"User-Agent": build_user_agent()},
+) -> None:
+    fetch_wikipedia = fetch_service(timeout=timeout, headers=headers)
+    asyncio.run(fetch_wikipedia.fetch(func))
